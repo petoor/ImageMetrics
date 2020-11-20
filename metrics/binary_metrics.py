@@ -36,7 +36,10 @@ class BinaryImageMetrics():
             y_true = self.y_true
         if y_pred is None:
             y_pred = self.y_pred
-
+            
+        if y_true.max() == 0 and y_pred.max()==0:
+            return 0.0 
+            
         tp, fp, _, fn = self._confusion_matrix(y_true, y_pred)
         f1 = 2*tp / (2*tp +fp + fn)
         return f1
