@@ -1,8 +1,6 @@
 import numpy as np
 from skimage.measure import label
 from skimage.metrics import hausdorff_distance
-from sklearn.metrics import confusion_matrix
-
 
 class BinaryImageMetrics():
     def __init__(self, y_true, y_pred):
@@ -110,8 +108,11 @@ class BinaryImageMetrics():
         return haus_dist_obj
 
     def _confusion_matrix(self, y_true, y_pred):
-        cm = confusion_matrix(y_true.flatten(), y_pred.flatten(), labels=[0,1])
-        tn, fn, tp, fp = cm[0,0], cm[1,0], cm[1,1], cm[0,1]
+        y_true= y_true.flatten()
+        y_pred = y_pred.flatten()*2
+        cm = y_true+y_pred
+        cm = np.bincount(cm, minlength=4)
+        tn, fp, fn, tp = cm
         return tp, fp, tn, fn
     
     def _get_overlap(self, idx, return_rectangle=False, y_true_p_switch=False):

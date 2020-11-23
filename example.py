@@ -9,7 +9,7 @@ edge = np.uint8(Image.open("./test_images/edge.png").convert("L"))
 empty = np.zeros_like(base_img)
 full = np.ones_like(base_img)
 
-metrics = BinaryImageMetrics(empty, empty)
+metrics = BinaryImageMetrics(missing_img, expanded_img)
 count = metrics.get_count()
 print(f"Count ratio is: {count}")
 f1 = metrics.get_f1()

@@ -1,6 +1,5 @@
 numpy>=1.19.4
 Pillow>=8.0.1
-scikit-learn>=0.23.2
 
 #We need scikit-image >0.18, this is currently not released as a pip package
 # To install it, do the following
