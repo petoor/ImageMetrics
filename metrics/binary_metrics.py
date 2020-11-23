@@ -4,7 +4,7 @@ from skimage.metrics import hausdorff_distance
 
 class BinaryImageMetrics():
     def __init__(self, y_true, y_pred):
-        #TODO: Add README.md and documentation
+        #TODO: Add documentation
         #TODO: implement Adjusted Rand Index and https://web.stanford.edu/class/cs273/scribing/2004/class8/scribe8.pdf
         
         # Numpy have the bug : ValueError: cannot set WRITEABLE flag to True of this array
@@ -38,7 +38,7 @@ class BinaryImageMetrics():
         if y_true.max() == 0 and y_pred.max()==0:
             return 0.0 
             
-        tp, fp, _, fn = self._confusion_matrix(y_true, y_pred)
+        tp, fp, _, fn = self.confusion_matrix(y_true, y_pred)
         f1 = 2*tp / (2*tp +fp + fn)
         return f1
 
@@ -107,7 +107,7 @@ class BinaryImageMetrics():
         haus_dist_obj /= 2
         return haus_dist_obj
 
-    def _confusion_matrix(self, y_true, y_pred):
+    def confusion_matrix(self, y_true, y_pred):
         y_true= y_true.flatten()
         y_pred = y_pred.flatten()*2
         cm = y_true+y_pred
@@ -124,54 +124,37 @@ class BinaryImageMetrics():
             y_pred = self.y_pred_label
 
         roi_y_true = np.argwhere(y_true == idx)
-        roi_p = y_pred[roi_y_true[:,0],roi_y_true[:,1]]
-        
+        roi_y_pred = y_pred[roi_y_true[:,0],roi_y_true[:,1]]
+
         # Finds max overlap, excluding background
-        matching_idx = np.bincount(roi_p)
+        matching_idx = np.bincount(roi_y_pred)
         if len(matching_idx)<=1:
-            matching_idx = 0
+            matching_idx = -1
         else:
             matching_idx = matching_idx[1:].argmax()+1
-
         if return_rectangle:
-            bbox, min_x, min_y = self._bounding_box(roi_y_true, at_origon=True)
-            roi_p = np.argwhere(y_pred == matching_idx)
-            roi_p[:,0] = roi_p[:,0]-min_x
-            roi_p[:,1] = roi_p[:,1]-min_y
-            roi_p[:,0] = np.clip(roi_p[:,0], bbox[0], bbox[2])
-            roi_p[:,1] = np.clip(roi_p[:,1], bbox[1], bbox[3])
-
-            roi_y_true[:,0] = roi_y_true[:,0]-min_x
-            roi_y_true[:,1] = roi_y_true[:,1]-min_y
-
-            roi_y_true_box = np.zeros((bbox[2]+1, bbox[3]+1), dtype=np.uint8)
-            roi_p_box = np.zeros((bbox[2]+1, bbox[3]+1), dtype=np.uint8)
-
-            roi_y_true_box[roi_y_true[:,0],roi_y_true[:,1]] = idx           
-            roi_p_box[roi_p[:,0],roi_p[:,1]] = matching_idx
-            roi_y_true = roi_y_true_box # Convience for return function
-            roi_p = roi_p_box 
+            bbox, _, _ = self._bounding_box(roi_y_true, at_origon=False)
+            roi_y_true = y_true[bbox[0]:bbox[2]+1,bbox[1]:bbox[3]+1]
+            roi_y_pred = y_pred[bbox[0]:bbox[2]+1,bbox[1]:bbox[3]+1]
+            roi_y_true =(roi_y_true==idx)*1
 
         else:
-            roi_p[roi_p!=matching_idx] = 0
-            roi_y_true = np.ones_like(roi_p)*idx #Faster than self.true_label[roi[:,0],roi[:,1]]
+            roi_y_true =np.ones((len(roi_y_true)),dtype=int)
+        roi_y_pred =(roi_y_pred==matching_idx)*1
 
-        roi_y_true[roi_y_true>0]=1
-        roi_p[roi_p>0]=1
         if y_true_p_switch:
-            return roi_y_true, roi_p
+            return roi_y_true, roi_y_pred
         else:
-            return roi_p, roi_y_true
+            return roi_y_pred, roi_y_true
 
     def _bounding_box(self, points, at_origon=False):
         bbox = [min(points[:,0]), min(points[:,1]), max(points[:,0]), max(points[:,1])]
+        min_x = bbox[0]
+        min_y = bbox[1]
         if at_origon:
-            min_x = bbox[0]
-            min_y = bbox[1]
             bbox = [bbox[0] - min_x,
                     bbox[1] - min_y,
                     bbox[2] - min_x,
                     bbox[3] - min_y]
-            return bbox, min_x, min_y
-        else:
-            return bbox
+        return bbox, min_x, min_y
+        
