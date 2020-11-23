@@ -3,6 +3,7 @@ A repository used for various binary metrics used to evaluate (especially) medic
 
 Currently the repository contains.
 
+* Count ratio
 * Confusion matrix
 * F1 Score
 * Object F1 Score  (The object-level Dice index)
