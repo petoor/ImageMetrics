@@ -1,7 +1,9 @@
 # ImageMetrics
-A repository used for various binary metrics used to evaluate (especially) medical images
+A repository used for various binary metrics used to evaluate (especially) medical images.
+
 All the metrics are implementet with numpy and scikit-image. 
-Currently the repository contains.
+
+Currently the repository contains:
 
 * Object count ratio
 * Confusion matrix
