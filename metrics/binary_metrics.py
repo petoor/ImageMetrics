@@ -41,6 +41,19 @@ class BinaryImageMetrics():
         tp, fp, _, fn = self.confusion_matrix(y_true, y_pred)
         f1 = 2*tp / (2*tp +fp + fn)
         return f1
+        
+    def get_iou(self, y_true=None, y_pred=None):
+        if y_true is None:
+            y_true = self.y_true
+        if y_pred is None:
+            y_pred = self.y_pred
+            
+        if y_true.max() == 0 and y_pred.max()==0:
+            return 0.0 
+            
+        tp, fp, _, fn = self.confusion_matrix(y_true, y_pred)
+        f1 = tp / (tp +fp + fn)
+        return f1
 
     def get_hausdroff_dist(self, y_true=None, y_pred=None):
         if y_true is None:
@@ -53,6 +66,26 @@ class BinaryImageMetrics():
         else:
             haus_dist = hausdorff_distance(y_true, y_pred)
         return haus_dist
+
+    def get_iou_obj(self):
+        iou_obj = 0
+        total_y_pred = max(np.bincount(self.y_pred.flatten(),minlength=2)[1],1)
+        total_y_true = max(np.bincount(self.y_true.flatten(), minlength=2)[1],1)
+
+        for idx in range(1, self.y_true_label.max()+1):
+            gi, si = self._get_overlap(idx, return_rectangle=False, y_true_p_switch=False)
+            iou = (np.bincount(gi.flatten(), minlength=2)[1]/total_y_true)*self.get_iou(y_true=gi, y_pred=si)
+            iou_obj += iou
+
+        for idx in range(1, self.y_pred_label.max()+1):
+            si, gi = self._get_overlap(idx, return_rectangle=False, y_true_p_switch=True)
+            iou = (np.bincount(si.flatten(), minlength=2)[1]/total_y_pred)*self.get_iou(y_true=si, y_pred=gi)
+            iou_obj += iou
+
+        iou_obj /= 2
+
+        return iou_obj
+
 
     def get_f1_obj(self):
         f1_obj = 0
@@ -72,6 +105,7 @@ class BinaryImageMetrics():
         f1_obj /= 2
 
         return f1_obj
+
 
     def get_hausdorff_obj_distance(self):
         haus_dist_obj = 0
