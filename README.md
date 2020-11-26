@@ -9,6 +9,8 @@ Currently the repository contains:
 * Confusion matrix
 * F1 Score
 * Object F1 Score  (The object-level Dice index)
+* IoU Score
+* Object IoU Score
 * Hausdorff Distance¹
 * Object Hausdorff Distance¹ (object-level Hausdorff distance)
 
