@@ -78,8 +78,8 @@ class BinaryImageMetrics():
             iou_obj += iou
 
         for idx in range(1, self.y_pred_label.max()+1):
-            gi, si = self._get_overlap(idx, return_rectangle=False, y_true_p_switch=True)
-            iou = (np.bincount(si.flatten(), minlength=2)[1]/total_y_pred)*self.get_iou(y_true=gi, y_pred=si)
+            si, gi = self._get_overlap(idx, return_rectangle=False, y_true_p_switch=True)
+            iou = (np.bincount(si.flatten(), minlength=2)[1]/total_y_pred)*self.get_iou(y_true=si, y_pred=gi)
             iou_obj += iou
 
         iou_obj /= 2
@@ -98,8 +98,8 @@ class BinaryImageMetrics():
             f1_obj += f1
 
         for idx in range(1, self.y_pred_label.max()+1):
-            gi, si = self._get_overlap(idx, return_rectangle=False, y_true_p_switch=True)
-            f1 = (np.bincount(si.flatten(), minlength=2)[1]/total_y_pred)*self.get_f1(y_true=gi, y_pred=si)
+            si, gi = self._get_overlap(idx, return_rectangle=False, y_true_p_switch=True)
+            f1 = (np.bincount(si.flatten(), minlength=2)[1]/total_y_pred)*self.get_f1(y_true=si, y_pred=gi)
             f1_obj += f1
 
         f1_obj /= 2
@@ -131,11 +131,11 @@ class BinaryImageMetrics():
             haus_dist_obj += haus_dist
 
         for idx in range(1, self.y_pred_label.max()+1):
-            gi, si = self._get_overlap(idx, return_rectangle=True, y_true_p_switch=True)
+            si, gi = self._get_overlap(idx, return_rectangle=True, y_true_p_switch=True)
             if gi.max() == 0 or si.max() == 0:
                 haus_dist = ((si.shape[0]*si.shape[1])/total_y_pred)*np.sqrt(si.shape[0]**2+si.shape[1]**2)
             else:
-                haus_dist = (np.bincount(si.flatten())[1]/total_y_pred)*self.get_hausdroff_dist(y_true=gi, y_pred=si)
+                haus_dist = (np.bincount(si.flatten())[1]/total_y_pred)*self.get_hausdroff_dist(y_true=si, y_pred=gi)
             haus_dist_obj += haus_dist
 
         haus_dist_obj /= 2
