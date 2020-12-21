@@ -78,8 +78,8 @@ class BinaryImageMetrics():
             iou_obj += iou
 
         for idx in range(1, self.y_pred_label.max()+1):
-            si, gi = self._get_overlap(idx, return_rectangle=False, y_true_p_switch=True)
-            iou = (np.bincount(si.flatten(), minlength=2)[1]/total_y_pred)*self.get_iou(y_true=si, y_pred=gi)
+            gi, si = self._get_overlap(idx, return_rectangle=False, y_true_p_switch=True)
+            iou = (np.bincount(si.flatten(), minlength=2)[1]/total_y_pred)*self.get_iou(y_true=gi, y_pred=si)
             iou_obj += iou
 
         iou_obj /= 2
@@ -98,8 +98,8 @@ class BinaryImageMetrics():
             f1_obj += f1
 
         for idx in range(1, self.y_pred_label.max()+1):
-            si, gi = self._get_overlap(idx, return_rectangle=False, y_true_p_switch=True)
-            f1 = (np.bincount(si.flatten(), minlength=2)[1]/total_y_pred)*self.get_f1(y_true=si, y_pred=gi)
+            gi, si = self._get_overlap(idx, return_rectangle=False, y_true_p_switch=True)
+            f1 = (np.bincount(si.flatten(), minlength=2)[1]/total_y_pred)*self.get_f1(y_true=gi, y_pred=si)
             f1_obj += f1
 
         f1_obj /= 2
@@ -109,10 +109,10 @@ class BinaryImageMetrics():
 
     def get_hausdorff_obj_distance(self):
         haus_dist_obj = 0
-        total_p = np.bincount(self.y_pred.flatten(), minlength=2)[1]
+        total_y_pred = np.bincount(self.y_pred.flatten(), minlength=2)[1]
         total_y_true = np.bincount(self.y_true.flatten(), minlength=2)[1]
         
-        if total_y_true == 0 or total_p == 0:
+        if total_y_true == 0 or total_y_pred == 0:
             # Note this conversion is different from
             # https://warwick.ac.uk/fac/sci/dcs/research/tia/glascontest/evaluation/
             # But the Hausdorff distance is not defined for non-overlapping objects.
@@ -131,11 +131,11 @@ class BinaryImageMetrics():
             haus_dist_obj += haus_dist
 
         for idx in range(1, self.y_pred_label.max()+1):
-            si, gi = self._get_overlap(idx, return_rectangle=True, y_true_p_switch=True)
+            gi, si = self._get_overlap(idx, return_rectangle=True, y_true_p_switch=True)
             if gi.max() == 0 or si.max() == 0:
-                haus_dist = ((si.shape[0]*si.shape[1])/total_p)*np.sqrt(si.shape[0]**2+si.shape[1]**2)
+                haus_dist = ((si.shape[0]*si.shape[1])/total_y_pred)*np.sqrt(si.shape[0]**2+si.shape[1]**2)
             else:
-                haus_dist = (np.bincount(si.flatten())[1]/total_p)*self.get_hausdroff_dist(y_true=gi, y_pred=si)
+                haus_dist = (np.bincount(si.flatten())[1]/total_y_pred)*self.get_hausdroff_dist(y_true=gi, y_pred=si)
             haus_dist_obj += haus_dist
 
         haus_dist_obj /= 2
@@ -173,14 +173,11 @@ class BinaryImageMetrics():
             roi_y_true =(roi_y_true==idx)*1
 
         else:
-            roi_y_true =np.ones((len(roi_y_true)),dtype=int)
-        roi_y_pred =(roi_y_pred==matching_idx)*1
-
-        if y_true_p_switch:
-            return roi_y_true, roi_y_pred
-        else:
-            return roi_y_pred, roi_y_true
-
+            roi_y_true = np.ones((len(roi_y_true)),dtype=int)
+        roi_y_pred = (roi_y_pred==matching_idx)*1
+        
+        return roi_y_true, roi_y_pred
+        
     def _bounding_box(self, points, at_origon=False):
         bbox = [min(points[:,0]), min(points[:,1]), max(points[:,0]), max(points[:,1])]
         min_x = bbox[0]
