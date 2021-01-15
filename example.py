@@ -10,15 +10,21 @@ empty = np.zeros_like(base_img)
 full = np.ones_like(base_img)
 
 metrics = BinaryImageMetrics(base_img, expanded_img)
-count = metrics.get_count()
+count = metrics.count_ratio()
 print(f"Count ratio is: {count}")
-f1 = metrics.get_f1()
+
+f1 = metrics.f1()
 print(f"F1 score is : {f1}")
-f1_obj = metrics.get_f1_obj()
+f1_obj = metrics.f1(obj=True)
 print(f"F1 object score is: {f1_obj}")
-iou = metrics.get_iou()
+
+iou = metrics.iou()
 print(f"IoU score is : {iou}")
-iou_obj = metrics.get_iou_obj()
+iou_obj = metrics.iou(obj=True)
 print(f"IoU object score is : {iou_obj}")
-hausdorff_obj_distance = metrics.get_hausdorff_obj_distance()
+
+hausdorff_obj_distance = metrics.hausdorff_distance(obj=True)
 print(f"Hausdroff object distance score is : {hausdorff_obj_distance}")
+
+mcc = metrics.mcc()
+print(f"MCC score is : {mcc}")
