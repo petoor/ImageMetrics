@@ -15,12 +15,12 @@ print(f"Count ratio is: {count}")
 
 f1 = metrics.f1()
 print(f"F1 score is : {f1}")
-f1_obj = metrics.f1(obj=True)
+f1_obj = metrics.f1(obj=True, return_rectangle=False)
 print(f"F1 object score is: {f1_obj}")
 
 iou = metrics.iou()
 print(f"IoU score is : {iou}")
-iou_obj = metrics.iou(obj=True)
+iou_obj = metrics.iou(obj=True, return_rectangle=False)
 print(f"IoU object score is : {iou_obj}")
 
 hausdorff_obj_distance = metrics.hausdorff_distance(obj=True)
@@ -28,3 +28,7 @@ print(f"Hausdroff object distance score is : {hausdorff_obj_distance}")
 
 mcc = metrics.mcc()
 print(f"MCC score is : {mcc}")
+
+mcc_obj = metrics.mcc(obj=True, return_rectangle=True)
+print(f"MCC object score is : {mcc_obj}")
+

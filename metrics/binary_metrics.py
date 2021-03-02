@@ -29,19 +29,19 @@ class BinaryImageMetrics():
         else:
             return min(count_y_true/count_y_pred, count_y_pred/count_y_true)
 
-    def f1(self, y_true=None, y_pred=None, obj=False):
+    def f1(self, y_true=None, y_pred=None, obj=False, return_rectangle=False, blank_default_value=0.0):
         if obj:
             f1_obj = 0
             total_y_pred = max(np.bincount(self.y_pred.flatten(),minlength=2)[1],1)
             total_y_true = max(np.bincount(self.y_true.flatten(), minlength=2)[1],1)
 
             for idx in range(1, self.y_true_label.max()+1):
-                gi, si = self._overlap(idx, return_rectangle=False, y_true_p_switch=False)
+                gi, si = self._overlap(idx, return_rectangle=return_rectangle, y_true_p_switch=False)
                 f1 = (np.bincount(gi.flatten(), minlength=2)[1]/total_y_true)*self.f1(y_true=gi, y_pred=si, obj=False)
                 f1_obj += f1
 
             for idx in range(1, self.y_pred_label.max()+1):
-                si, gi = self._overlap(idx, return_rectangle=False, y_true_p_switch=True)
+                si, gi = self._overlap(idx, return_rectangle=return_rectangle, y_true_p_switch=True)
                 f1 = (np.bincount(si.flatten(), minlength=2)[1]/total_y_pred)*self.f1(y_true=si, y_pred=gi, obj=False)
                 f1_obj += f1
 
@@ -55,25 +55,25 @@ class BinaryImageMetrics():
                 y_pred = self.y_pred
                 
             if y_true.max() == 0 and y_pred.max()==0:
-                return 1.0 
+                return blank_default_value 
             
-            tp, fp, _, fn = self.confusion_matrix(y_true, y_pred)
+            _, fn, fp, tp = self.confusion_matrix(y_true, y_pred)
             f1 = 2*tp / (2*tp +fp + fn)
             return f1
         
-    def iou(self, y_true=None, y_pred=None, obj=False):
+    def iou(self, y_true=None, y_pred=None, obj=False, return_rectangle=False, blank_default_value=0.0):
         if obj:
             iou_obj = 0
             total_y_pred = max(np.bincount(self.y_pred.flatten(),minlength=2)[1],1)
             total_y_true = max(np.bincount(self.y_true.flatten(), minlength=2)[1],1)
 
             for idx in range(1, self.y_true_label.max()+1):
-                gi, si = self._overlap(idx, return_rectangle=False, y_true_p_switch=False)
+                gi, si = self._overlap(idx, return_rectangle=return_rectangle, y_true_p_switch=False)
                 iou = (np.bincount(gi.flatten(), minlength=2)[1]/total_y_true)*self.iou(y_true=gi, y_pred=si, obj=False)
                 iou_obj += iou
 
             for idx in range(1, self.y_pred_label.max()+1):
-                si, gi = self._overlap(idx, return_rectangle=False, y_true_p_switch=True)
+                si, gi = self._overlap(idx, return_rectangle=return_rectangle, y_true_p_switch=True)
                 iou = (np.bincount(si.flatten(), minlength=2)[1]/total_y_pred)*self.iou(y_true=si, y_pred=gi, obj=False)
                 iou_obj += iou
 
@@ -88,30 +88,49 @@ class BinaryImageMetrics():
                 y_pred = self.y_pred
             
             if y_true.max() == 0 and y_pred.max()==0:
-                return 1.0 
+                return blank_default_value 
             
-            tp, fp, _, fn = self.confusion_matrix(y_true, y_pred)
+            _, fn, fp, tp = self.confusion_matrix(y_true, y_pred)
             iou = tp / (tp +fp + fn)
             return iou
 
-    def mcc(self, y_true=None, y_pred=None):
-        if y_true is None:
-            y_true = self.y_true
-        if y_pred is None:
-            y_pred = self.y_pred
-        
-        if y_true.max() == 0 and y_pred.max()==0:
-            return 1.0 
+    def mcc(self, y_true=None, y_pred=None, obj=False, return_rectangle=True, blank_default_value=0.0):
+        if obj:
+            mcc_obj = 0
+            total_y_pred = max(np.bincount(self.y_pred.flatten(),minlength=2)[1],1)
+            total_y_true = max(np.bincount(self.y_true.flatten(), minlength=2)[1],1)
+
+            for idx in range(1, self.y_true_label.max()+1):
+                gi, si = self._overlap(idx, return_rectangle=return_rectangle, y_true_p_switch=False)
+                mcc = (np.bincount(gi.flatten(), minlength=2)[1]/total_y_true)*self.mcc(y_true=gi, y_pred=si, obj=False)
+                mcc_obj += mcc
+
+            for idx in range(1, self.y_pred_label.max()+1):
+                si, gi = self._overlap(idx, return_rectangle=return_rectangle, y_true_p_switch=True)
+                mcc = (np.bincount(si.flatten(), minlength=2)[1]/total_y_pred)*self.mcc(y_true=si, y_pred=gi, obj=False)
+                mcc_obj += mcc
+
+            mcc_obj /= 2
             
-        tp, fp, tn, fn = self.confusion_matrix(y_true, y_pred)
-        
-        if (tp+fp)*(tp+fn)*(tn+fp)*(tn+fn) == 0: # We can't divide by zero
-            mcc = 0.0
+            return mcc_obj
+    
         else:
-            mcc = (tp*tn - fp*fn) / np.sqrt((tp+fp)*(tp+fn)*(tn+fp)*(tn+fn))
+            if y_true is None:
+                y_true = self.y_true
+            if y_pred is None:
+                y_pred = self.y_pred
+        
+            if y_true.max() == 0 and y_pred.max()==0:
+                return blank_default_value 
+            
+            tn, fn, fp, tp = self.confusion_matrix(y_true, y_pred)
+            if (tp+fp)*(tp+fn)*(tn+fp)*(tn+fn) == 0: # We can't divide by zero
+                mcc = 0.0
+            else:
+                mcc = (tp*tn - fp*fn) / np.sqrt((tp+fp)*(tp+fn)*(tn+fp)*(tn+fn))
         return mcc
 
-    def hausdorff_distance(self, y_true=None, y_pred=None, obj=False):
+    def hausdorff_distance(self, y_true=None, y_pred=None, obj=False, return_rectangle=True, blank_default_value=None):
         if obj:
             haus_dist_obj = 0
             total_y_pred = np.bincount(self.y_pred.flatten(), minlength=2)[1]
@@ -125,10 +144,13 @@ class BinaryImageMetrics():
                 # 0.0 would skew the distance to much to the positive side, and
                 # infinite is misleading. 
                 # In case both objects are empty, we return the max dist of y_true
-                return np.sqrt(self.y_true.shape[0]**2+self.y_true.shape[1]**2)
+                if blank_default_value is not None:
+                    return blank_default_value
+                else:
+                    return np.sqrt(self.y_true.shape[0]**2+self.y_true.shape[1]**2)
 
             for idx in range(1, self.y_true_label.max()+1):
-                gi, si = self._overlap(idx, return_rectangle=True, y_true_p_switch=False)
+                gi, si = self._overlap(idx, return_rectangle=return_rectangle, y_true_p_switch=False)
                 if gi.max() == 0 or si.max() == 0:
                     haus_dist = ((gi.shape[0]*gi.shape[1])/total_y_true)*np.sqrt(gi.shape[0]**2+gi.shape[1]**2)
                 else:
@@ -136,7 +158,7 @@ class BinaryImageMetrics():
                 haus_dist_obj += haus_dist
 
             for idx in range(1, self.y_pred_label.max()+1):
-                si, gi = self._overlap(idx, return_rectangle=True, y_true_p_switch=True)
+                si, gi = self._overlap(idx, return_rectangle=return_rectangle, y_true_p_switch=True)
                 if gi.max() == 0 or si.max() == 0:
                     haus_dist = ((si.shape[0]*si.shape[1])/total_y_pred)*np.sqrt(si.shape[0]**2+si.shape[1]**2)
                 else:
@@ -164,8 +186,8 @@ class BinaryImageMetrics():
         y_pred = y_pred.flatten()*2
         cm = y_true+y_pred
         cm = np.bincount(cm, minlength=4)
-        tn, fp, fn, tp = np.float64(cm)
-        return tp, fp, tn, fn
+        tn, fn, fp, tp = np.float64(cm)
+        return tn, fn, fp, tp
     
     def _overlap(self, idx, return_rectangle=False, y_true_p_switch=False):
         if y_true_p_switch:
