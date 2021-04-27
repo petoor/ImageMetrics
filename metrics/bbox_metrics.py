@@ -5,7 +5,7 @@ import numpy as np
 from skimage.measure import label
 
 class BBoxMetrics():
-    def __init__(self, y_true, y_pred, y_true_from_mask=True, y_pred_from_mask=True, iou_thresh=0.5):      
+    def __init__(self, y_true, y_pred, y_true_from_mask=True, y_pred_from_mask=True):      
         # Numpy have the bug : ValueError: cannot set WRITEABLE flag to True of this array
         # That is why we copy the array
 
@@ -26,8 +26,6 @@ class BBoxMetrics():
         else:
             self.y_pred_bbox = y_pred
             
-        self.tn, self.fn, self.fp, self.tp = self.confusion_matrix(iou_thresh)
-
     def get_iou(self, pred_box, gt_box):
         """
         pred_box : the coordinate for predict bounding box
