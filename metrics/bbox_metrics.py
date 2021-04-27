@@ -134,7 +134,3 @@ class BBoxMetrics():
                     fn += 1.0
                   
         return tn, fn, fp, tp
-
-    def cm(self):
-        return self.tn, self.fn, self.fp, self.tp
-
