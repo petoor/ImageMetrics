@@ -27,7 +27,7 @@ class BBoxMetrics():
             self.y_pred_bbox = y_pred
             
         self.tn, self.fn, self.fp, self.tp = self.confusion_matrix(iou_thresh)
-        print(self.tn, self.fn, self.fp, self.tp)
+
     def get_iou(self, pred_box, gt_box):
         """
         pred_box : the coordinate for predict bounding box
@@ -135,20 +135,6 @@ class BBoxMetrics():
                   
         return tn, fn, fp, tp
 
-    def sensitivity(self):
-        if self.tp == 0:
-            return 0.0
-        return self.tp / (self.tp + self.fn)
-
-    def specificity(self):
-        if self.tn == 0:
-            return 0.0
-        return self.tn / (self.tn +self.fp)
-        
-    def mcc(self):
-        if (self.tp+self.fp)*(self.tp+self.fn)*(self.tn+self.fp)*(self.tn+self.fn) == 0: # We can't divide by zero
-            mcc = 0.0
-        else:
-            mcc = (self.tp*self.tn - self.fp*self.fn) / np.sqrt((self.tp+self.fp)*(self.tp+self.fn)*(self.tn+self.fp)*(self.tn+self.fn))
-        return mcc
+    def cm(self):
+        return self.tn, self.fn, self.fp, self.tp
 

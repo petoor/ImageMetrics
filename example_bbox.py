@@ -10,6 +10,5 @@ empty = np.zeros_like(base_img)
 full = np.ones_like(base_img)
 
 metrics = BBoxMetrics(y_true=base_img, y_pred=empty)
-print(metrics.sensitivity())
-print(metrics.specificity())
-print(metrics.mcc())
+print(metrics.cm())
+
